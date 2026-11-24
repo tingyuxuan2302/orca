@@ -64,3 +64,56 @@ export function suggestRepoMonogram(displayName: string, taken: Iterable<string>
     .filter((candidate): candidate is string => candidate !== null)
   return valid.find((candidate) => !used.has(candidate)) ?? valid[0] ?? '?'
 }
+
+// Approximate semibold advance widths (em) for the app font, so wide pairs like `WW` can shrink
+// to fit while narrow ones like `OI` stay large. Anything unlisted (digits, CJK) uses a default.
+const GLYPH_WIDTHS_EM: Record<string, number> = {
+  I: 0.3,
+  J: 0.52,
+  L: 0.56,
+  F: 0.58,
+  E: 0.6,
+  T: 0.62,
+  Z: 0.62,
+  S: 0.63,
+  P: 0.64,
+  Y: 0.64,
+  B: 0.66,
+  R: 0.66,
+  X: 0.66,
+  K: 0.67,
+  V: 0.67,
+  A: 0.68,
+  C: 0.7,
+  D: 0.72,
+  U: 0.72,
+  G: 0.73,
+  H: 0.73,
+  N: 0.74,
+  O: 0.76,
+  Q: 0.76,
+  M: 0.86,
+  W: 0.96
+}
+const DIGIT_WIDTH_EM = 0.62
+const OTHER_WIDTH_EM = 1
+
+export function monogramWidthEm(text: string): number {
+  return Array.from(text.toUpperCase()).reduce(
+    (total, character) =>
+      total +
+      (GLYPH_WIDTHS_EM[character] ?? (/\p{N}/u.test(character) ? DIGIT_WIDTH_EM : OTHER_WIDTH_EM)),
+    0
+  )
+}
+
+// Letters fill this much of the mark's height, unless that would be too wide for its width.
+const MONOGRAM_HEIGHT_FILL = { one: 0.72, two: 0.8 }
+const MONOGRAM_WIDTH_FILL = 0.8
+
+/** Font size as a fraction of the mark's side, sized so every pair fits inside the tile. */
+export function monogramFontScale(text: string): number {
+  const heightFill =
+    Array.from(text).length > 1 ? MONOGRAM_HEIGHT_FILL.two : MONOGRAM_HEIGHT_FILL.one
+  return Math.min(heightFill, MONOGRAM_WIDTH_FILL / Math.max(monogramWidthEm(text), 0.01))
+}

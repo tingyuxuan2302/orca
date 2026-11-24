@@ -1,20 +1,19 @@
 import { describe, expect, it } from 'vitest'
-import { readableTextColorOn } from './repo-badge-color'
+import { softMarkColors } from './repo-badge-color'
 
-describe('readableTextColorOn', () => {
-  it('keeps white on dark and saturated fills', () => {
-    for (const color of ['#737373', '#8b5cf6', '#ef4444', '#ec4899', '#000000']) {
-      expect(readableTextColorOn(color)).toBe('#ffffff')
-    }
-  })
-
-  it('switches to dark text on light fills', () => {
-    for (const color of ['#eab308', '#f97316', '#22c55e', '#14b8a6', '#ffffff', '#fde68a']) {
-      expect(readableTextColorOn(color)).toBe('#0a0a0a')
-    }
+describe('softMarkColors', () => {
+  it('washes the fill and shifts the letters toward the theme', () => {
+    expect(softMarkColors('#ef4444', 'dark')).toEqual({
+      background: 'rgba(239, 68, 68, 0.22)',
+      foreground: '#f47c7c'
+    })
+    expect(softMarkColors('#ef4444', 'light')).toEqual({
+      background: 'rgba(239, 68, 68, 0.22)',
+      foreground: '#a73030'
+    })
   })
 
   it('treats invalid input as the neutral default', () => {
-    expect(readableTextColorOn('nope')).toBe('#ffffff')
+    expect(softMarkColors('nope', 'dark').background).toBe('rgba(115, 115, 115, 0.22)')
   })
 })

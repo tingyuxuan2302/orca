@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { suggestRepoMonogram } from './repo-monogram'
+import { monogramFontScale, monogramWidthEm, suggestRepoMonogram } from './repo-monogram'
 
 describe('suggestRepoMonogram', () => {
   it('abbreviates names the way people do', () => {
@@ -26,5 +26,19 @@ describe('suggestRepoMonogram', () => {
 
   it('keeps non-Latin names', () => {
     expect(suggestRepoMonogram('東京')).toBe('東京')
+  })
+})
+
+describe('monogramFontScale', () => {
+  it('shrinks wide pairs so they stay inside the mark', () => {
+    for (const text of ['WW', 'MW', 'OR', 'OI', 'W', '東京']) {
+      expect(monogramFontScale(text) * monogramWidthEm(text)).toBeLessThanOrEqual(0.8 + 1e-9)
+    }
+    expect(monogramFontScale('WW')).toBeLessThan(monogramFontScale('OR'))
+    expect(monogramFontScale('OI')).toBeCloseTo(0.8 / 1.06, 2)
+  })
+
+  it('caps single letters by height', () => {
+    expect(monogramFontScale('O')).toBe(0.72)
   })
 })
