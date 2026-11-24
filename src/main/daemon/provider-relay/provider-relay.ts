@@ -152,13 +152,15 @@ export class ProviderRelay {
       () => void this.detach(clientId)
     )
     this.attachment = attachment
-    // The initialize answer and held requests go first, as events, so no reply line has to carry them.
+    // The initialize answer, kept lines and held requests go first, as events, so no reply line has to carry them.
     const { initializeResult } = this.pending
+    const kept = this.pending.kept.records()
     const pending = this.pending.records()
     const sent =
       (initializeResult === null ||
         (await attachment.sendPieces('relayInitialize', 0, initializeResult))) &&
-      (await attachment.sendPending(pending))
+      (await attachment.sendRecords('relayKept', kept)) &&
+      (await attachment.sendRecords('relayPending', pending))
     // A detach or takeover during the preamble owns the spool now; this attach must not touch it.
     if (!sent || this.attachment !== attachment) {
       throw new Error(RELAY_TAKEN_OVER)
@@ -179,15 +181,17 @@ export class ProviderRelay {
     if (this.exitAnnounced) {
       this.sendExit()
     }
-    return this.attachResult(replayThroughSeq, pending, initializeResult !== null)
+    return this.attachResult(cursor, replayThroughSeq, pending, initializeResult !== null)
   }
 
   private attachResult(
+    cursor: number,
     replayThroughSeq: number,
     pending: ProviderRelayRecord[],
     initializeResultSent: boolean
   ): ProviderRelayAttachResult {
     return {
+      ...this.pending.kept.attachDetails(Math.max(cursor, this.spool.ackedSeq)),
       replayThroughSeq,
       pending: pending.map((record) => record.seq),
       maxClientRequestId: this.pending.maxClientRequestId,
@@ -301,11 +305,7 @@ export class ProviderRelay {
     if (paused !== this.readingPaused) {
       this.readingPaused = paused
       const { stdout } = this.options.managed.child
-      if (paused) {
-        stdout.pause()
-      } else {
-        stdout.resume()
-      }
+      void (paused ? stdout.pause() : stdout.resume())
     }
   }
 
