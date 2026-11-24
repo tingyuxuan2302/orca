@@ -39,12 +39,8 @@ export function resolveRepoBadgeColor(value: unknown): string {
   return normalizeRepoBadgeColor(value) ?? DEFAULT_REPO_BADGE_COLOR
 }
 
-function hexChannels(hex: string): [number, number, number] {
-  return [1, 3, 5].map((offset) => Number.parseInt(hex.slice(offset, offset + 2), 16)) as [
-    number,
-    number,
-    number
-  ]
+function hexChannels(hex: string): number[] {
+  return [1, 3, 5].map((offset) => Number.parseInt(hex.slice(offset, offset + 2), 16))
 }
 
 const toHex = (channels: number[]): string =>

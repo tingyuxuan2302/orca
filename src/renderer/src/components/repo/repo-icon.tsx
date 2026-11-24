@@ -166,6 +166,11 @@ export function RepoIconGlyph({
   if (repoIcon?.type === 'letters') {
     const light = softMarkColors(color, 'light')
     const dark = softMarkColors(color, 'dark')
+    const markColors: React.CSSProperties & Record<`--mark-${string}`, string> = {
+      '--mark-bg': light.background,
+      '--mark-fg-light': light.foreground,
+      '--mark-fg-dark': dark.foreground
+    }
     return (
       <span
         className={cn(
@@ -173,13 +178,7 @@ export function RepoIconGlyph({
           className,
           iconClassName
         )}
-        style={
-          {
-            '--mark-bg': light.background,
-            '--mark-fg-light': light.foreground,
-            '--mark-fg-dark': dark.foreground
-          } as React.CSSProperties
-        }
+        style={markColors}
         aria-hidden="true"
       >
         {/* Why: container units scale the letters with the mark, from 16px sidebar chips to 40px tiles. */}
