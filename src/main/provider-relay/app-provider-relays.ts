@@ -1,8 +1,7 @@
 import type { DaemonClient } from '../daemon/transport/client/daemon-client'
 import type {
   ProviderRelayDetachPolicy,
-  ProviderRelayWorkMarker,
-  ProviderRelaySpawnSpec
+  ProviderRelayWorkMarker
 } from '../daemon/protocol/daemon-provider-relay-protocol'
 export {
   dropListedProviderRelay,
@@ -28,18 +27,14 @@ import {
 export { KeptProviderRelayEndedError, KeptProviderRelayUnreachableError }
 export { withProviderRelayRebind } from './provider-relay-kept-rebind'
 import type { ManagedProviderProcess } from '../provider-process/managed-provider-process'
-import {
-  resolveProviderChildEnv,
-  type ProviderProcessLaunch
-} from '../provider-process/provider-process-launch'
-import { processEnvWithoutAgentSession } from '../../shared/agent-launch/startup/parent-agent-session-env'
-import { resolveProviderExecPath } from '../provider-process/provider-exec-path'
+import type { ProviderProcessLaunch } from '../provider-process/provider-process-launch'
 import { withTimeout } from '../../shared/concurrency/promise-timeout-fallback'
 import { providerRelayChannel, type ProviderRelayChannel } from './provider-relay-channel'
 import { RelayedProviderChild } from './relayed-provider-child'
 import { ProviderRelayCarriedWork } from './provider-relay-carried-work'
 import type { ProviderRelayAckFloor } from './relayed-provider-output'
 import { relayedManagedProcess } from './relayed-managed-process'
+import { daemonReadsFolder, relaySpawnSpec } from './provider-relay-spawn-spec'
 
 /** Desktop composition installs this on macOS and Linux; anywhere else chats launch as before. */
 export type ProviderRelayRoute = {
@@ -146,54 +141,6 @@ async function connected(client: DaemonClient | null): Promise<DaemonClient | nu
   }
 }
 
-function spawnSpec(
-  launch: ProviderProcessLaunch,
-  client: DaemonClient,
-  inheritedEnv?: Record<string, string>
-): ProviderRelaySpawnSpec | null {
-  const identity = client.getDaemonIdentity()
-  if (!route || !identity?.providerRelay || identity.appVersion !== route.appVersion) {
-    return null
-  }
-  if (!launch.cwd) {
-    return null
-  }
-  const env: Record<string, string> = {}
-  const base = inheritedEnv ?? processEnvWithoutAgentSession(process.platform)
-  const resolved = resolveProviderChildEnv(launch, base)
-  for (const [key, value] of Object.entries(resolved)) {
-    if (value !== undefined) {
-      env[key] = value
-    }
-  }
-  return {
-    command: launch.command,
-    args: launch.args,
-    cwd: launch.cwd,
-    env,
-    ownerExecutable: resolveProviderExecPath(),
-    appVersion: route.appVersion,
-    ...(identity.entryPath ? { entryPath: identity.entryPath } : {})
-  }
-}
-
-/** On macOS the daemon may lack permission for the chat's folder; only a readable one relays. */
-async function daemonReadsFolder(client: DaemonClient, cwd: string): Promise<boolean> {
-  if (process.platform !== 'darwin') {
-    return true
-  }
-  try {
-    const reply = await client.request<{ outcome?: unknown } | null>(
-      'probeProviderCwd',
-      { cwd },
-      1_500
-    )
-    return reply?.outcome === 'ok'
-  } catch {
-    return false
-  }
-}
-
 function track(chatKey: string, child: RelayedProviderChild, markers: ProviderRelayWorkMarkers) {
   markersFor.set(child, markers)
   attached.set(chatKey, child)
@@ -291,7 +238,7 @@ export async function launchRelayedProviderProcess(
     return kept
   }
   const client = await connected(await route.current().catch(() => null))
-  const spec = client ? spawnSpec(launch, client, relay.inheritedEnv) : null
+  const spec = client ? relaySpawnSpec(launch, client, route.appVersion, relay.inheritedEnv) : null
   if (!client || !spec || !(await daemonReadsFolder(client, spec.cwd))) {
     return null
   }
