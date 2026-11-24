@@ -151,10 +151,10 @@ export function renderTabBarSurface(
           <div
             data-single-tab={singleTab ? '' : undefined}
             data-pinned-home-slot=""
-            // Why: Home prefers its usual 144px; in overflow the strip gives way to its floor first, then Home ellipsizes down to its icons, then to its avatar on the strip's usual 40px tab floor.
+            // Why: Home prefers its usual 144px; in overflow the strip gives way to its floor first, then Home narrows to its icons (label hidden once it no longer fits whole), then to its avatar on the strip's usual 40px tab floor.
             // Below 250px of tab strip (room for Home's icons, the 40px sliver, "+" and every action) the order flips so the sliver gives way to Home's icons.
             // The tab fills this box, so the drop marker on its right edge is never clipped; sr-only keeps "Home" as the accessible name when it hides.
-            className="@container/pinned-home group/tab-strip flex min-h-0 min-w-10 shrink grow-0 basis-[144px] overflow-hidden @max-[250px]/tab-strip:shrink-[10000] [&>[data-tab-strip-slot]]:w-full [&>[data-tab-strip-slot]]:min-w-0 @max-[72px]/pinned-home:[&_.tab-label]:sr-only @max-[44px]/pinned-home:[&_.lucide-pin]:hidden"
+            className="@container/pinned-home group/tab-strip flex min-h-0 min-w-10 shrink grow-0 basis-[144px] overflow-hidden @max-[250px]/tab-strip:shrink-[10000] [&>[data-tab-strip-slot]]:w-full [&>[data-tab-strip-slot]]:min-w-0 @max-[84px]/pinned-home:[&_.tab-label]:sr-only @max-[44px]/pinned-home:[&_.lucide-pin]:hidden"
             style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
           >
             <TabStripTooltipProvider>
