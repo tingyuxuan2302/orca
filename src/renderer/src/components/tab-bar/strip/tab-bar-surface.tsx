@@ -138,6 +138,10 @@ export function renderTabBarSurface(
     })
 
   const hasTabs = orderedItems.length + clientHostedBrowserRows.length > 0
+  // Why 300 with a pinned Home: below it Home's icons, both chevrons, the sliver, "+" and every action no longer fit.
+  const chevronClassName = `mx-0.5 my-auto h-6 w-5 ${
+    pinnedCount > 0 ? '@max-[300px]/tab-strip:hidden' : '@max-[260px]/tab-strip:hidden'
+  }`
   const stripHasTabs = orderedItems.length + clientHostedBrowserRows.length > pinnedCount
   return (
     <div ref={surfaceRef} className="flex items-stretch h-full overflow-hidden flex-1 min-w-0">
@@ -147,9 +151,10 @@ export function renderTabBarSurface(
           <div
             data-single-tab={singleTab ? '' : undefined}
             data-pinned-home-slot=""
-            // Why: in a narrow split the strip gives way to its 40px floor first (its huge shrink weight), then Home goes icon-only so "+" stays reachable.
-            // sr-only, not hidden: the label stays the tab's accessible name and the hover card still shows it.
-            className="group/tab-strip flex min-h-0 min-w-0 shrink overflow-hidden @max-[320px]/tab-strip:[&>[data-tab-strip-slot]]:min-w-0 @max-[320px]/tab-strip:[&_.tab-label]:sr-only"
+            // Why: Home prefers its usual 144px; in overflow the strip gives way to its floor first, then Home ellipsizes down to its icons, then to its avatar on the strip's usual 40px tab floor.
+            // Below 250px of tab strip (room for Home's icons, the 40px sliver, "+" and every action) the order flips so the sliver gives way to Home's icons.
+            // The tab fills this box, so the drop marker on its right edge is never clipped; sr-only keeps "Home" as the accessible name when it hides.
+            className="@container/pinned-home group/tab-strip flex min-h-0 min-w-10 shrink grow-0 basis-[144px] overflow-hidden @max-[250px]/tab-strip:shrink-[10000] [&>[data-tab-strip-slot]]:w-full [&>[data-tab-strip-slot]]:min-w-0 @max-[72px]/pinned-home:[&_.tab-label]:sr-only @max-[44px]/pinned-home:[&_.lucide-pin]:hidden"
             style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
           >
             <TabStripTooltipProvider>
@@ -164,7 +169,7 @@ export function renderTabBarSurface(
             <Button
               variant="ghost"
               size="icon-xs"
-              className="mx-0.5 my-auto h-6 w-5 @max-[260px]/tab-strip:hidden"
+              className={chevronClassName}
               style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
               aria-label={t('auto.components.tab.bar.TabBar.7a9b4af2af', 'Scroll tabs left')}
               aria-disabled={!tabStripOverflowState.canScrollStart}
@@ -195,7 +200,9 @@ export function renderTabBarSurface(
             data-single-tab={singleTab ? '' : undefined}
             // Why: tabs are the only drag source, so a narrow pane clips the "+" before the last tab sliver.
             className={`group/tab-strip relative flex min-h-0 w-max max-w-full ${
-              pinnedCount > 0 ? 'shrink-[10000]' : 'shrink'
+              pinnedCount > 0
+                ? 'shrink-[10000] @max-[250px]/tab-strip:shrink @max-[250px]/tab-strip:min-w-0'
+                : 'shrink'
             } ${stripHasTabs ? 'min-w-10' : 'min-w-0'}`}
             style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
           >
@@ -241,7 +248,7 @@ export function renderTabBarSurface(
             <Button
               variant="ghost"
               size="icon-xs"
-              className="mx-0.5 my-auto h-6 w-5 @max-[260px]/tab-strip:hidden"
+              className={chevronClassName}
               style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
               aria-label={t('auto.components.tab.bar.TabBar.232e075b07', 'Scroll tabs right')}
               aria-disabled={!tabStripOverflowState.canScrollEnd}

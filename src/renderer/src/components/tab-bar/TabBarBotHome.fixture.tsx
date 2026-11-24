@@ -53,7 +53,14 @@ function chatTab(id: string, entityId: string, label: string, index: number): Ta
   }
 }
 
-function BotHomeTabsFixture({ sideChats }: { sideChats: number }): React.JSX.Element {
+function BotHomeTabsFixture({
+  sideChats,
+  paneHeader = false
+}: {
+  sideChats: number
+  /** Mirrors TabGroupPanel's header: drag handle, quick commands and pane actions share the strip's width. */
+  paneHeader?: boolean
+}): React.JSX.Element {
   const tabs = [
     chatTab('home-tab', bot.chatSessionId!, 'Home', 0),
     ...Array.from({ length: sideChats }, (_, index) =>
@@ -66,32 +73,46 @@ function BotHomeTabsFixture({ sideChats }: { sideChats: number }): React.JSX.Ele
     )
   ] as (Tab & { contentType: 'agent-session' })[]
   const [activeTabId, setActiveTabId] = useState(tabs.at(-1)!.id)
+  const tabBar = (
+    <TabBar
+      tabs={[]}
+      agentSessionTabs={tabs}
+      tabBarOrder={tabs.map((tab) => tab.id)}
+      activeTabId={activeTabId}
+      activeTabType="agent-session"
+      worktreeId={WORKSPACE_ID}
+      groupId={GROUP_ID}
+      expandedPaneByTabId={{}}
+      showAgentLaunchItems={false}
+      onActivate={setActiveTabId}
+      onActivateAgentSession={setActiveTabId}
+      onClose={noop}
+      onCloseOthers={noop}
+      onCloseToRight={noop}
+      onCloseToLeft={noop}
+      onNewTerminalTab={noop}
+      onNewBrowserTab={noop}
+      onSetCustomTitle={noop}
+      onSetTabColor={noop}
+      onTogglePaneExpand={noop}
+    />
+  )
   return (
     <DndContext>
-      <div className="@container/tab-strip h-8 bg-card">
-        <TabBar
-          tabs={[]}
-          agentSessionTabs={tabs}
-          tabBarOrder={tabs.map((tab) => tab.id)}
-          activeTabId={activeTabId}
-          activeTabType="agent-session"
-          worktreeId={WORKSPACE_ID}
-          groupId={GROUP_ID}
-          expandedPaneByTabId={{}}
-          showAgentLaunchItems={false}
-          onActivate={setActiveTabId}
-          onActivateAgentSession={setActiveTabId}
-          onClose={noop}
-          onCloseOthers={noop}
-          onCloseToRight={noop}
-          onCloseToLeft={noop}
-          onNewTerminalTab={noop}
-          onNewBrowserTab={noop}
-          onSetCustomTitle={noop}
-          onSetTabColor={noop}
-          onTogglePaneExpand={noop}
-        />
-      </div>
+      {paneHeader ? (
+        <div data-fixture-pane-header="" className="flex h-8 items-stretch bg-card pr-1">
+          <div className="@container/tab-strip flex min-w-0 flex-1 items-stretch">
+            <div className="h-full min-w-10 flex-1">{tabBar}</div>
+            <div className="w-10 min-w-0 @max-[203px]/tab-strip:hidden" />
+            <div className="flex min-w-0 items-center gap-0.5 overflow-hidden pr-0.5 pl-1.5">
+              <div className="h-6 w-[47px] shrink-0 rounded-md bg-muted @max-[163px]/tab-strip:hidden" />
+              <div className="size-7 shrink-0 rounded-md bg-muted @max-[114px]/tab-strip:hidden" />
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="@container/tab-strip h-8 bg-card">{tabBar}</div>
+      )}
     </DndContext>
   )
 }
@@ -128,4 +149,12 @@ export const homeNarrowSplit = defineFixture({
   store: { workspaceSessionReady: true },
   setup,
   render: () => <BotHomeTabsFixture sideChats={12} />
+})
+
+// Inside a pane header whose actions share the width; resize [data-fixture-pane-header] to probe narrow splits.
+export const homeInPaneHeader = defineFixture({
+  width: 620,
+  store: { workspaceSessionReady: true },
+  setup,
+  render: () => <BotHomeTabsFixture sideChats={12} paneHeader />
 })
