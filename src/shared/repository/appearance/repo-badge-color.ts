@@ -48,7 +48,7 @@ const toHex = (channels: number[]): string =>
 
 // Soft tint: a translucent wash of the color with letters in a deeper (light theme) or brighter
 // (dark theme) shade of the same hue, so the mark keeps one hue instead of white/black text.
-const SOFT_FILL_ALPHA = 0.22
+const SOFT_FILL_ALPHA = 0.16
 const SOFT_TEXT_SHIFT = 0.3
 
 export type SoftMarkColors = { background: string; foreground: string }
