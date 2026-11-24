@@ -137,7 +137,7 @@ function ProjectPeekHeader({
   const appearance = useRepoMarkAppearance(repo)
   return (
     <div className="flex items-start gap-3 px-3 pt-3 pb-2">
-      <RepoMarkTile repoIcon={repo.repoIcon} appearance={appearance} />
+      <RepoMarkTile appearance={appearance} />
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="min-w-0 truncate text-sm font-semibold leading-5 text-foreground">
           {repo.displayName}

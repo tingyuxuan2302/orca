@@ -61,14 +61,14 @@ export function RepositoryIconPicker({
   const selectedLucideName = repo.repoIcon?.type === 'lucide' ? repo.repoIcon.name : null
   const selectedEmoji = repo.repoIcon?.type === 'emoji' ? repo.repoIcon.emoji : ''
   const initialTab =
-    repo.repoIcon?.type === 'letters'
+    repo.repoIcon == null || repo.repoIcon.type === 'letters'
       ? 'letters'
       : repo.repoIcon?.type === 'emoji'
         ? 'emoji'
         : repo.repoIcon?.type === 'lucide'
           ? 'icon'
           : 'avatar'
-  const currentIconLabel = getRepositoryIconLabel(repo.repoIcon, t)
+  const currentIconLabel = getRepositoryIconLabel(appearance.icon, t)
 
   const setIcon = (repoIcon: RepoIcon | null) => updateRepo(repo.id, { repoIcon })
   const setBadgeColor = (badgeColor: string) => updateRepo(repo.id, { badgeColor })
@@ -77,7 +77,7 @@ export function RepositoryIconPicker({
     <div className="space-y-3">
       <div className="flex items-center gap-3">
         {/* Preview the resolved sidebar mark so auto colors and clash boxes match the cards. */}
-        <RepoMarkTile repoIcon={repo.repoIcon} appearance={appearance} />
+        <RepoMarkTile appearance={appearance} />
         <div className="min-w-0 flex-1">
           <Label className="text-sm font-semibold">
             {t('auto.components.settings.RepositoryIconPicker.43bf3709dd', 'Repo icon')}

@@ -180,7 +180,7 @@ export function RepoIconGlyph({
         aria-hidden="true"
       >
         {/* Why: container units scale the letters to the mark, from 16px sidebar chips to 40px tiles. */}
-        <span style={{ fontSize: repoIcon.text.length > 1 ? 'min(52cqh, 44cqw)' : '62cqh' }}>
+        <span style={{ fontSize: repoIcon.text.length > 1 ? 'min(60cqh, 55cqw)' : '72cqh' }}>
           {repoIcon.text}
         </span>
       </span>

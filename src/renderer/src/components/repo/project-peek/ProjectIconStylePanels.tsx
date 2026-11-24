@@ -13,7 +13,12 @@ import {
   type RepoIcon
 } from '../../../../../shared/repository/appearance/repo-icon'
 import { suggestRepoMonogram } from '../../../../../shared/repository/appearance/repo-monogram'
+import {
+  repoMarkKey,
+  resolveRepoMarkAppearances
+} from '../../../../../shared/repository/appearance/repo-mark-appearance'
 import { getRepoLucideIconOptions, RepoIconGlyph } from '../repo-icon'
+import { useRepoMarkAppearance } from '../RepoMark'
 import type { ProjectRemoteDisplay } from './project-remote-display'
 import { ProjectIconSourcePanel } from './ProjectIconSourcePanel'
 
@@ -57,18 +62,19 @@ export function IconTile({
   )
 }
 
-/** Letters other projects already show, so the suggestion picks something distinct. */
+/** Letters other projects already show, chosen or default, so suggestions stay distinct. */
 function useTakenMonograms(repo: Repo): string[] {
   const repos = useAppStore((state) => state.repos)
-  return React.useMemo(
-    () =>
-      repos.flatMap((candidate) =>
-        candidate.id !== repo.id && candidate.repoIcon?.type === 'letters'
-          ? [candidate.repoIcon.text]
-          : []
-      ),
-    [repos, repo.id]
-  )
+  const key = repoMarkKey(repo)
+  return React.useMemo(() => {
+    const taken: string[] = []
+    for (const [otherKey, appearance] of resolveRepoMarkAppearances(repos)) {
+      if (otherKey !== key && appearance.icon.type === 'letters') {
+        taken.push(appearance.icon.text)
+      }
+    }
+    return taken
+  }, [repos, key])
 }
 
 export function useSuggestedMonogram(repo: Repo): string {
@@ -90,7 +96,9 @@ export function LettersPanel({
 }): React.JSX.Element {
   const t = useTranslate()
   const taken = useTakenMonograms(repo)
-  const current = repo.repoIcon?.type === 'letters' ? repo.repoIcon.text : ''
+  const shown = useRepoMarkAppearance(repo).icon
+  // With no icon chosen the mark already shows default letters; the field reflects them.
+  const current = shown.type === 'letters' ? shown.text : ''
   // While typing, show the draft; otherwise always mirror the saved letters.
   const [draft, setDraft] = React.useState<string | null>(null)
   // Offer the smart pick plus the next distinct alternatives, so one click usually lands it.
@@ -165,8 +173,7 @@ export function GlyphPanel({
 }): React.JSX.Element {
   const t = useTranslate()
   const [emojiOpen, setEmojiOpen] = React.useState(false)
-  const selectedLucideName =
-    repo.repoIcon == null ? 'Folder' : repo.repoIcon.type === 'lucide' ? repo.repoIcon.name : null
+  const selectedLucideName = repo.repoIcon?.type === 'lucide' ? repo.repoIcon.name : null
   const emoji = repo.repoIcon?.type === 'emoji' ? repo.repoIcon.emoji : ''
   const options = getRepoLucideIconOptions().filter(
     (option) => !VISUALLY_DUPLICATE_ICONS.has(option.name) || option.name === selectedLucideName

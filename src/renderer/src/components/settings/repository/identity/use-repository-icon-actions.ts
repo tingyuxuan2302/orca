@@ -80,23 +80,13 @@ export function useRepositoryIconActions(
     }
   }
 
+  // The default mark is the project's letters, so resetting just clears the chosen icon.
   const resetToDefault = async (): Promise<void> => {
     setResetting(true)
     try {
-      const resolution = await resolveGitHubAvatar({ forceLive: true }).catch(() => null)
-      if (!mountedRef.current) {
-        return
-      }
-      const updates = resolution
-        ? buildRepositoryGitHubAvatarUpdate(repo, resolution, { clearMissingIcon: true })
-        : { repoIcon: null }
-      if (updates) {
-        updateRepo(repo.id, updates)
-      }
+      updateRepo(repo.id, { repoIcon: null })
     } finally {
-      if (mountedRef.current) {
-        setResetting(false)
-      }
+      setResetting(false)
     }
   }
 

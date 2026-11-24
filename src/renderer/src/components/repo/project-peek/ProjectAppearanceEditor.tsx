@@ -36,7 +36,11 @@ function autoColorFor(repo: Repo, autoColor: string): string {
 }
 
 function iconStyleOf(repoIcon: Repo['repoIcon']): IconStyle {
-  return repoIcon?.type === 'letters' ? 'letters' : repoIcon?.type === 'image' ? 'picture' : 'icon'
+  // No chosen icon means the default letters.
+  if (repoIcon == null || repoIcon.type === 'letters') {
+    return 'letters'
+  }
+  return repoIcon.type === 'image' ? 'picture' : 'icon'
 }
 
 export function ProjectAppearanceEditor({
@@ -64,12 +68,11 @@ export function ProjectAppearanceEditor({
     previewedFromRef.current = null
     updateRepo(repo.id, { repoIcon })
   }
-  const usingGitHubAvatar = repo.repoIcon?.type === 'image' && repo.repoIcon.source === 'github'
 
   const chooseStyle = (next: IconStyle): void => {
     setStyle(next)
     // Letters need no further input, so switching to them previews the smart pick right away.
-    if (next === 'letters' && repo.repoIcon?.type !== 'letters') {
+    if (next === 'letters' && repo.repoIcon != null && repo.repoIcon.type !== 'letters') {
       const previous = repo.repoIcon ?? null
       setIcon({ type: 'letters', text: suggestedLetters })
       previewedFromRef.current = { icon: previous }
@@ -91,8 +94,7 @@ export function ProjectAppearanceEditor({
     openSettingsPage()
   }
 
-  const isDefault =
-    repo.badgeColor === DEFAULT_REPO_BADGE_COLOR && (repo.repoIcon == null || usingGitHubAvatar)
+  const isDefault = repo.badgeColor === DEFAULT_REPO_BADGE_COLOR && repo.repoIcon == null
   const reset = async (): Promise<void> => {
     const previous = {
       repoIcon: repo.repoIcon ?? null,

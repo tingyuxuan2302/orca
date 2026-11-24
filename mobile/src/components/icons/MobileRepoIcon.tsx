@@ -89,7 +89,7 @@ export function MobileRepoIcon({ repoIcon, size = 14, color = colors.textSeconda
             styles.lettersText,
             {
               color: readableTextColorOn(color),
-              fontSize: size * (repoIcon.text.length > 1 ? 0.46 : 0.62)
+              fontSize: size * (repoIcon.text.length > 1 ? 0.55 : 0.72)
             }
           ]}
           numberOfLines={1}
